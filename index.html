@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI Speech-to-Text Accessibility Tool - Real-time transcription with accessibility features">
+    <title>VoiceScribe Accessibility - Speech to Text</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lexend:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header" role="banner">
+            <div class="logo">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                    <line x1="12" y1="19" x2="12" y2="22"/>
+                    <line x1="8" y1="22" x2="16" y2="22"/>
+                </svg>
+                <div>
+                    <h1>VoiceScribe</h1>
+                    <span class="badge">Accessibility Tool</span>
+                </div>
+            </div>
+            <p class="tagline">Speak freely. Transcribe instantly. Accessible to all.</p>
+        </header>
+
+        <main class="main-content" role="main">
+            <!-- Status Bar -->
+            <section class="status-bar" aria-live="polite" aria-atomic="true">
+                <div class="status-indicator" id="status-indicator">
+                    <span class="status-dot" id="status-dot"></span>
+                    <span class="status-text" id="status-text">Ready to listen</span>
+                </div>
+                <div class="confidence-meter" id="confidence-meter" style="display:none;">
+                    <span>Confidence:</span>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidence-fill"></div>
+                    </div>
+                    <span id="confidence-value">0%</span>
+                </div>
+            </section>
+
+            <!-- Visualizer -->
+            <section class="visualizer-section" aria-label="Audio visualizer">
+                <canvas id="audio-visualizer" width="800" height="120" aria-hidden="true"></canvas>
+                <div class="visualizer-fallback" id="visualizer-fallback" role="img" aria-label="Audio activity indicator">
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                    <div class="wave-bar"></div>
+                </div>
+            </section>
+
+            <!-- Main Controls -->
+            <section class="control-section" aria-labelledby="controls-heading">
+                <h2 id="controls-heading" class="sr-only">Recording Controls</h2>
+                
+                <div class="primary-controls">
+                    <button id="btn-record" class="btn-record" aria-label="Start recording">
+                        <span class="record-icon">●</span>
+                        <span class="record-label">Start Recording</span>
+                    </button>
+                    <button id="btn-pause" class="btn-pause" disabled aria-label="Pause recording">
+                        <span>⏸</span> Pause
+                    </button>
+                    <button id="btn-stop" class="btn-stop" disabled aria-label="Stop recording">
+                        <span>⏹</span> Stop
+                    </button>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="control-group">
+                        <label for="language-select">Language</label>
+                        <select id="language-select" aria-label="Select language">
+                            <option value="en-US">English (US)</option>
+                            <option value="en-GB">English (UK)</option>
+                            <option value="es-ES">Spanish</option>
+                            <option value="fr-FR">French</option>
+                            <option value="de-DE">German</option>
+                            <option value="it-IT">Italian</option>
+                            <option value="pt-BR">Portuguese (BR)</option>
+                            <option value="zh-CN">Chinese (Simplified)</option>
+                            <option value="ja-JP">Japanese</option>
+                            <option value="ko-KR">Korean</option>
+                            <option value="ar-SA">Arabic</option>
+                            <option value="hi-IN">Hindi</option>
+                            <option value="ru-RU">Russian</option>
+                            <option value="auto">Auto-detect</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="punctuation-select">Punctuation Mode</label>
+                        <select id="punctuation-select" aria-label="Punctuation mode">
+                            <option value="auto">Auto (AI-assisted)</option>
+                            <option value="manual">Manual (spoken)</option>
+                            <option value="none">None</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group toggle-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="continuous-toggle" checked aria-label="Continuous recording">
+                            <span class="toggle-switch"></span>
+                            <span class="toggle-text">Continuous Mode</span>
+                        </label>
+                    </div>
+
+                    <div class="control-group toggle-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="interim-toggle" checked aria-label="Show interim results">
+                            <span class="toggle-switch"></span>
+                            <span class="toggle-text">Live Preview</span>
+                        </label>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Transcript Area -->
+            <section class="transcript-section" aria-labelledby="transcript-heading">
+                <div class="transcript-header">
+                    <h2 id="transcript-heading">Transcript</h2>
+                    <div class="transcript-actions">
+                        <button id="btn-copy" class="btn-icon" aria-label="Copy transcript" title="Copy">
+                            📋
+                        </button>
+                        <button id="btn-clear-transcript" class="btn-icon" aria-label="Clear transcript" title="Clear">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+                
+                <div 
+                    id="transcript-output" 
+                    class="transcript-output" 
+                    role="log" 
+                    aria-live="polite" 
+                    aria-atomic="false"
+                    tabindex="0"
+                >
+                    <p class="placeholder-text">Your speech will appear here...</p>
+                </div>
+
+                <div class="transcript-meta">
+                    <span>Words: <strong id="word-count">0</strong></span>
+                    <span>Duration: <strong id="duration">00:00</strong></span>
+                    <span>Segments: <strong id="segment-count">0</strong></span>
+                </div>
+            </section>
+
+            <!-- Export & Tools -->
+            <section class="tools-section" aria-labelledby="tools-heading">
+                <h2 id="tools-heading" class="panel-title">Export & Tools</h2>
+                
+                <div class="export-grid">
+                    <button id="btn-export-txt" class="btn-export">
+                        <span class="export-icon">📝</span>
+                        <span>Plain Text (.txt)</span>
+                    </button>
+                    <button id="btn-export-srt" class="btn-export">
+                        <span class="export-icon">🎬</span>
+                        <span>Subtitles (.srt)</span>
+                    </button>
+                    <button id="btn-export-vtt" class="btn-export">
+                        <span class="export-icon">🌐</span>
+                        <span>WebVTT (.vtt)</span>
+                    </button>
+                    <button id="btn-export-json" class="btn-export">
+                        <span class="export-icon">📊</span>
+                        <span>JSON Data (.json)</span>
+                    </button>
+                </div>
+
+                <div class="accessibility-tools">
+                    <h3>Accessibility Enhancements</h3>
+                    <div class="tool-row">
+                        <button id="btn-text-to-speech" class="btn-tool" aria-label="Read transcript aloud">
+                            🔊 Read Aloud
+                        </button>
+                        <button id="btn-high-contrast" class="btn-tool" aria-label="Toggle high contrast">
+                            🌓 High Contrast
+                        </button>
+                        <button id="btn-large-text" class="btn-tool" aria-label="Toggle large text">
+                            🔠 Large Text
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Keyboard Shortcuts Help -->
+            <section class="shortcuts-section" aria-labelledby="shortcuts-heading">
+                <h2 id="shortcuts-heading" class="panel-title">Keyboard Shortcuts</h2>
+                <div class="shortcuts-grid">
+                    <div class="shortcut"><kbd>Ctrl</kbd> + <kbd>Space</kbd> <span>Start/Stop</span></div>
+                    <div class="shortcut"><kbd>Ctrl</kbd> + <kbd>.</kbd> <span>Pause/Resume</span></div>
+                    <div class="shortcut"><kbd>Ctrl</kbd> + <kbd>C</kbd> <span>Copy</span></div>
+                    <div class="shortcut"><kbd>Ctrl</kbd> + <kbd>S</kbd> <span>Save</span></div>
+                    <div class="shortcut"><kbd>Esc</kbd> <span>Stop</span></div>
+                    <div class="shortcut"><kbd>Ctrl</kbd> + <kbd>L</kbd> <span>Clear</span></div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="app-footer" role="contentinfo">
+            <p>🔒 All processing happens in your browser. No audio is sent to any server.</p>
+            <p>Built for accessibility. Free and open source.</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" role="status" aria-live="polite" aria-hidden="true">
+        <span id="toast-message"></span>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
